@@ -42,7 +42,7 @@ class XAddress {
         const accountID = decodeAccountID(classicAddress);
         // 5. Convert tag to Buffer (UInt32LE)
         let myTagBuffer;
-        if (tag) {
+        if (tag !== undefined) {
             if (Number.isInteger(tag) === false) {
                 throw new Error(`Invalid tag: ${tag}`);
             }
@@ -104,7 +104,7 @@ class LegacyAddress {
         //    It's a little tricky since the JS 'number' type cannot support it,
         //    but it's doable with a BigNumber library.
         let myTagBuffer;
-        if (this.tag) {
+        if (this.tag !== undefined) {
             if (Number.isInteger(this.tag) === false) {
                 throw new Error(`Invalid tag: ${this.tag}`);
             }
@@ -138,7 +138,7 @@ class LegacyAddress {
         //      An added benefit of this approach is that the tag, in the middle
         //      of the string, (correctly) appears to be opaque and not user-editable.
         //    - Finish with the classic address.
-        const tagString = this.tag ? this.tag.toString() : '';
+        const tagString = this.tag !== undefined ? this.tag.toString() : '';
         return new XAddress(networkByte.toString() + checksum_base58 + DELIMITER + tagString + this.classicAddress);
     }
 }

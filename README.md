@@ -173,13 +173,19 @@ This consistency can be especially helpful for users in the context of trust lin
 
 ### Disadvantages
 
-Support for X addresses must be added to client software, which may take time.
+Support for tagged addresses must be added to client software, which may take time.
 
-Fortunately, users will be able to easily tell if the address they want to use is an X address or not, simply by looking at the first character.
+Parsing a tagged address is more complex than only parsing a classic address.
+
+#### Amelioration
+
+Users will be able to easily tell if the address they want to use is an X address or not, simply by looking at the first character.
 
 Exchanges etc. can use explanatory verbiage such as: "We have added support for X addresses."
 
 If "X address" sounds too colloquial, they can say: "We have added support for tagged addresses." or "We have added support for packed addresses." However, this may be less informative since it is not immediately obvious how to tell whether an address is tagged/packed or not.
+
+For client software developers, to facilitate adoption and testing of the new format, open source tagged address parsers will be included in `ripple-lib` and made available in multiple programming languages.
 
 ### Transaction Example
 

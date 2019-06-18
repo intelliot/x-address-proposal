@@ -10,7 +10,7 @@
 // base16 (hex), base32, or base64 encoding in a standards compliant manner.
 // https://github.com/cryptocoinjs/base-x
 
-module.exports = function base (ALPHABET) {
+module.exports = function base (ALPHABET: string) {
   if (ALPHABET.length >= 255) throw new TypeError('Alphabet too long')
 
   const BASE_MAP = new Uint8Array(256)
@@ -29,7 +29,7 @@ module.exports = function base (ALPHABET) {
   const FACTOR = Math.log(BASE) / Math.log(256) // log(BASE) / log(256), rounded up
   const iFACTOR = Math.log(256) / Math.log(BASE) // log(256) / log(BASE), rounded up
 
-  function encode (source) {
+  function encode (source: Buffer) {
     if (!Buffer.isBuffer(source)) throw new TypeError('Expected Buffer')
     if (source.length === 0) return ''
 
@@ -78,7 +78,7 @@ module.exports = function base (ALPHABET) {
     return str
   }
 
-  function decodeUnsafe (source) {
+  function decodeUnsafe (source: string) {
     if (typeof source !== 'string') throw new TypeError('Expected String')
     if (source.length === 0) return Buffer.alloc(0)
 
@@ -139,7 +139,7 @@ module.exports = function base (ALPHABET) {
     return vch
   }
 
-  function decode (string) {
+  function decode (string: string) {
     const buffer = decodeUnsafe(string)
     if (buffer) return buffer
 

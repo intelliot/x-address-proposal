@@ -1,0 +1,17 @@
+{
+  "name": "x-address",
+  "version": "0.0.1",
+  "description": "Convert an XRP Ledger legacy address to an X address, or vice versa.",
+  "main": "src/x-address.js",
+  "bin": "src/bin.js",
+  "devDependencies": {
+    "@types/node": "^12.0.8",
+    "pkg": "^4.4.0",
+    "ts-node": "^8.3.0",
+    "typescript": "^3.5.2"
+  },
+  "scripts": {
+    "compile": "tsc",
+    "build": "npm run compile && pkg ."
+  }
+}

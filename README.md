@@ -327,11 +327,11 @@ To run the example (requires node.js and npm):
 Try:
 
 ```
-node . Tsm3WnY0rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf
+node . XsjB8w300rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf
 ```
 
 ```
-node . XsjB8w300rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf 0 production
+node . rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf 0 production
 ```
 
 To encode an address that should not use a tag, substitute `undefined` for the tag. Similarly, tagged addresses without a tag will, in legacy address format, show `undefined` for the tag. The utility supports converting multiple addresses at once; separate addresses with a space.

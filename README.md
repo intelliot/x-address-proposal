@@ -130,6 +130,7 @@ The classic address is included as-is. Yes, the account ID is 'checked' by two d
 In the following table, we present how the classic address `rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf` would be encoded under this spec to include various destination tags. The tag, if any, is on the left most column, followed by the tagged address. The network ID of these tagged addresses implies that they are intended for use in production.
 
 | Tag | Address |
+| --- | ------- |
 | None | XfHcYHS0rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 0 | XsjB8w300rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 1	| Xhc7pRF01rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
@@ -144,6 +145,7 @@ In the following table, we present how the classic address `rGWrZyQqhTp9Xu7G5Pka
 In the following table, we present tagged address encodings for the same classic address (`rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf`) but with a network ID of 'test' to show the example of tagged addresses intended for use on the XRP Ledger Test Net.
 
 | Tag | Address |
+| --- | ------- |
 | None | Tsm3WnY0rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 0 | TfhBmod00rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 1	| TaXnCXj01rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
@@ -314,3 +316,26 @@ return new XAddress(networkByte.toString() + checksum_base58 + DELIMITER + tagSt
 ```
 
 This requires some supporting code; please [view the full example here](./src/x-address.ts).
+
+To run the example (requires node.js and npm):
+
+1. Clone this git repo
+2. Run `npm install`
+2. Run `npm run compile`
+3. Run `node . ADDRESS [TAG] [NETWORK ID]`
+
+Try:
+
+```
+node . Tsm3WnY0rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf
+```
+
+```
+node . XsjB8w300rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf 0 production
+```
+
+To encode an address that should not use a tag, substitute `undefined` for the tag. Similarly, tagged addresses without a tag will, in legacy address format, show `undefined` for the tag. The utility supports converting multiple addresses at once; separate addresses with a space.
+
+You can also build binaries for Linux, Mac OS X, and Microsoft Windows: `npm run build`
+
+Binaries will be output in the `./bin` directory.

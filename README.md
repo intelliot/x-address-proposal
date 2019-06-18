@@ -345,3 +345,8 @@ To encode an address that should not use a tag, substitute `undefined` for the t
 You can also build binaries for Linux, Mac OS X, and Microsoft Windows: `npm run build`
 
 Binaries will be output in the `./bin` directory.
+
+## Acknowledgements
+
+This is proposal is largely based upon the XLS-5d proposal: https://github.com/xrp-community/standards-drafts/issues/6
+... with much of the verbiage copy-pasted from it! (With modifications where appropriate)

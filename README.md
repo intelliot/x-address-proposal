@@ -1,3 +1,7 @@
+## Note: This is a draft for discussion, and should not be implemented yet.
+
+Only 1 tagged address standard should ultimately be adopted.
+
 ```
 XRP Ledger Proposed Standard #5-L
 

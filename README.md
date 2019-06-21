@@ -1,3 +1,5 @@
+# Extended Addresses (X Addresses)
+
 ## Note: This is a draft for discussion, and should not be implemented yet.
 
 Only 1 tagged address standard should ultimately be adopted.
@@ -5,7 +7,7 @@ Only 1 tagged address standard should ultimately be adopted.
 ```
 XRP Ledger Proposed Standard #5-L
 
-Title:       X Addresses (Extended Addresses) - a "loosely" packed tagged address format
+Title:       Extended Addresses (X Addresses) - a "loosely" packed tagged address format
 Author:      Elliot M. Lee
 Affiliation: Ripple
 Status:      Draft

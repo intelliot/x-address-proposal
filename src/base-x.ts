@@ -29,7 +29,7 @@ module.exports = function base (ALPHABET: string) {
   const FACTOR = Math.log(BASE) / Math.log(256) // log(BASE) / log(256), rounded up
   const iFACTOR = Math.log(256) / Math.log(BASE) // log(256) / log(BASE), rounded up
 
-  function encode (source: Buffer) {
+  function encode (source: Buffer): string {
     if (!Buffer.isBuffer(source)) throw new TypeError('Expected Buffer')
     if (source.length === 0) return ''
 
@@ -78,14 +78,14 @@ module.exports = function base (ALPHABET: string) {
     return str
   }
 
-  function decodeUnsafe (source: string) {
+  function decodeUnsafe (source: string): Buffer {
     if (typeof source !== 'string') throw new TypeError('Expected String')
     if (source.length === 0) return Buffer.alloc(0)
 
     let psz = 0
 
-    // Skip leading spaces.
-    if (source[psz] === ' ') return
+    // Skip leading and trailing spaces.
+    source = source.trim()
 
     // Skip and count leading '1's.
     let zeroes = 0
@@ -105,7 +105,7 @@ module.exports = function base (ALPHABET: string) {
       let carry = BASE_MAP[source.charCodeAt(psz)]
 
       // Invalid character
-      if (carry === 255) return
+      if (carry === 255) throw new Error('Invalid character (carry === 255)')
 
       let i = 0
       for (let it = size - 1; (carry !== 0 || i < length) && (it !== -1); it--, i++) {
@@ -118,9 +118,6 @@ module.exports = function base (ALPHABET: string) {
       length = i
       psz++
     }
-
-    // Skip trailing spaces.
-    if (source[psz] === ' ') return
 
     // Skip leading zeroes in b256.
     let it = size - length
@@ -139,7 +136,7 @@ module.exports = function base (ALPHABET: string) {
     return vch
   }
 
-  function decode (string: string) {
+  function decode (string: string): Buffer {
     const buffer = decodeUnsafe(string)
     if (buffer) return buffer
 

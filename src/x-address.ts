@@ -22,14 +22,29 @@ class XAddress {
     }
     const networkByte = Buffer.from(first);
 
-    // 2. Take everything between that character and the first '0', as the checksum
+    // 2. Take everything between that character and the first '0', as the expiration and full checksum
     const delimiterPosition = this.xAddress.indexOf('0');
     if (delimiterPosition === -1) {
       throw new Error(`Missing delimiter: ${this.xAddress}`);
     }
-    const checksum = this.xAddress.slice(1, delimiterPosition);
+    const checksumAndExpirationBase58 = this.xAddress.slice(1, delimiterPosition);
+    const checksumAndExpiration: Buffer = codec.decode(checksumAndExpirationBase58);
 
-    const expiration = undefined; // TODO: get expiration...
+    let expirationBuffer: Buffer;
+    let expiration: number | undefined;
+    if (checksumAndExpiration.length === 4) {
+      // expiration is undefined
+      expirationBuffer = Buffer.alloc(0);
+      expiration = undefined;
+    } else if (checksumAndExpiration.length === 8) {
+      expirationBuffer = checksumAndExpiration.slice(4, 8);
+      expiration = expirationBuffer.readUInt32LE(0);
+    } else {
+      // Must be exactly 4 or 8 bytes
+      throw new Error(`Invalid checksum/expiration length: ${checksumAndExpiration.length}`);
+    }
+
+    const checksumBuffer = checksumAndExpiration.slice(0, 4);
 
     // 3. Take everything between that '0' and the next 'r', as the tag
     const classicAddressPosition = this.xAddress.indexOf('r', delimiterPosition + 1);
@@ -59,21 +74,20 @@ class XAddress {
     }
     const tagBuffer: Buffer = myTagBuffer;
 
-    // 6. Concat accountID, tagBuffer, and networkByte to create payload
-    const payload = Buffer.concat([accountID, tagBuffer, networkByte]);
+    // 6. Concat networkByte, expirationBuffer, tagBuffer, and accountID
+    //    to create the payload to be checksummed.
+    //    NB: The ordering of these values has been changed from an earlier draft of this spec.
+    const payload = Buffer.concat([networkByte, expirationBuffer, tagBuffer, accountID]);
 
     // 7. SHA256 x 2 and take first 4 bytes as checksum
     const computedChecksum = sha256(sha256(payload)).slice(0, 4);
 
-    // 8. Encode the checksum in base58
-    const computedChecksum_base58 = codec.encode(computedChecksum);
-
-    // 9. Ensure checksums match
-    if (computedChecksum_base58 !== checksum) {
-      throw new Error(`Invalid checksum: ${checksum}`);
+    // 8. Ensure checksums match
+    if (computedChecksum.equals(checksumBuffer) == false) {
+      throw new Error(`Invalid checksum (hex): ${checksumBuffer.toString('hex').toUpperCase()}`);
     }
 
-    // 10. Set networkID based on first character
+    // 9. Set networkID based on first character
     let networkID: NetworkID;
     if (first === 'X') {
       networkID = 'production';
@@ -84,6 +98,14 @@ class XAddress {
     }
     
     return new LegacyAddress(classicAddress, tag, networkID, expiration);
+  }
+
+  public toJSON(): object {
+    return describeAddress(this.toLegacyAddress(), this);
+  }
+
+  public toString(): string {
+    return this.xAddress;
   }
 }
 
@@ -120,18 +142,11 @@ class LegacyAddress {
       const unixTime: number = Date.parse(expiration);
       this.expiration = Math.round(unixTime / 1000) - 0x386D4380;
     } else if (typeof expiration === 'number') {
-      const unixTime: number = Date.now();
-      const xrpTime: number = Math.round(unixTime / 1000) - 0x386D4380;
-      if (xrpTime > expiration) {
-        console.warn(`WARNING: expiration is ${xrpTime - expiration} seconds in the past!`);
-      }
       this.expiration = expiration;
     } else {
       this.expiration = undefined; // does not expire
     }
   }
-
-  // TODO: implement toString()
 
   public toXAddress(): XAddress {
     // 1. Decode classicAddress to accountID
@@ -211,6 +226,14 @@ class LegacyAddress {
     const tagString = this.tag !== undefined ? this.tag.toString() : '';
     return new XAddress(networkByte.toString() + checksumAndExpirationBase58 + DELIMITER + tagString + this.classicAddress);
   }
+
+  public toJSON(): object {
+    return describeAddress(this, this.toXAddress());
+  }
+
+  public toString(): string {
+    return `${this.classicAddress} ${this.tag} ${this.networkID} ${this.expiration}`;
+  }
 }
 
 function decodeAccountID(base58: string): Buffer {
@@ -245,3 +268,27 @@ export {
   LegacyAddress,
   NetworkID
 };
+
+function describeAddress(legacy: LegacyAddress, x: XAddress): object {
+  let expirationDate: Date | undefined = undefined;
+  let secondsUntilExpiration: number | undefined = undefined;
+  let status: 'ACTIVE' | 'EXPIRED' = 'ACTIVE';
+  if (legacy.expiration != undefined && Number.isInteger(legacy.expiration)) {
+    expirationDate = new Date((legacy.expiration + 0x386D4380) * 1000);
+    secondsUntilExpiration = Math.round((expirationDate.getTime() - Date.now()) / 1000);
+    if (secondsUntilExpiration < 0) {
+      status = 'EXPIRED';
+    }
+  }
+
+  return {
+    "X Address": x.xAddress,
+    "Classic Address": legacy.classicAddress,
+    "Tag": legacy.tag,
+    "Network ID": legacy.networkID,
+    "Expiration in seconds since XRP epoch": legacy.expiration,
+    "Expiration in ISO 8601": expirationDate === undefined ? undefined : expirationDate.toISOString(),
+    "Seconds until expiration": secondsUntilExpiration,
+    "Status": status
+  };
+}

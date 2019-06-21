@@ -4,10 +4,7 @@ export { LegacyAddress, XAddress, NetworkID };
 
 if (require.main === module) {
   if (!process.argv[2]) {
-    console.log(`Usage: x-address ADDRESS [TAG] [NETWORK ID] [EXPIRATION]`);
-
-    // TODO: add json output feature
-    // console.log(`Usage: x-address [json] ADDRESS [TAG] [NETWORK ID] [EXPIRATION]`);
+    console.log(`Usage: x-address [json] ADDRESS [TAG] [NETWORK ID] [EXPIRATION]`);
 
     console.log();
     console.log(`  For classic addresses, the TAG, NETWORK ID, and EXPIRATION are required.`);
@@ -19,10 +16,14 @@ if (require.main === module) {
   // Pass 'undefined' (string) to indicate that the address does not have a tag;
   // Pass 'undefined' (string) to indicate that the address does not expire.
 
-  for (let i = 2; i < 1000; i++) { // Limit 1000 addresses!
+  const json = process.argv[2] === 'json' ? true : false;
+  let i = json ? 3 : 2;
+  const converted = [];
+
+  for (; i < 1000; i++) { // Limit 1000 addresses!
     const address = process.argv[i] || '';
     if (address === '') {
-      process.exit(0);
+      break;
     }
     if (address.slice(0, 1) === 'r') { // Legacy address
       // 1. Tag
@@ -46,16 +47,29 @@ if (require.main === module) {
   
       let legacyAddress: LegacyAddress = new LegacyAddress(address, tag, networkID as NetworkID, expiration);
 
-      console.log(legacyAddress.toXAddress().xAddress);
+      const xAddress = legacyAddress.toXAddress();
+      if (json) {
+        converted.push(xAddress);
+      } else {
+        console.log(xAddress.toString());
+      }
 
       // hop over Tag, NetworkID, Expiration; in order to process next address
       i = i + 3;
     } else if (address.slice(0, 1) === 'X' || address.slice(0, 1) === 'T') { // X address
       const legacyAddress = (new XAddress(address)).toLegacyAddress();
-      const tag = legacyAddress.tag !== undefined ? legacyAddress.tag : 'undefined';
-      console.log(`${legacyAddress.classicAddress} ${tag} ${legacyAddress.networkID}`);
+      
+      if (json) {
+        converted.push(legacyAddress);
+      } else {
+        console.log(legacyAddress.toString());
+      }
     } else {
       console.log(`Invalid address: ${address}`);
     }
+  }
+
+  if (json) {
+    console.log(JSON.stringify(converted, null, 2));
   }
 }

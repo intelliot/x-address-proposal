@@ -5,9 +5,10 @@ Only 1 tagged address standard should ultimately be adopted.
 ```
 XRP Ledger Proposed Standard #5-L
 
-Title:       Tagged Addresses ("Loosely" Packed)
+Title:       X Addresses (Extended Addresses) - a "loosely" packed tagged address format
 Author:      Elliot M. Lee
 Affiliation: Ripple
+Status:      Draft
 Created:     2019-06-18
 ```
 
@@ -93,7 +94,7 @@ This base58-encoded string is referred to as a "classic address".
 In the proposed format, the following values are concatenated together:
 
 1. An initial character indicating the network ID.
-2. A base58-encoded checksum, calculated in a very similar manner to a classic address's checksum.
+2. A base58-encoded value containing an optional expiration timestamp and a checksum.
 3. A delimiter, chosen to be '0'.
 4. A tag.
 5. A classic address.
@@ -102,16 +103,27 @@ In the proposed format, the following values are concatenated together:
 
 This character is chosen to be 'X' for production and 'T' for test. For this reason, tagged addresses following this format are referred to as "X addresses" as shorthand.
 
-#### 2. Checksum
+#### 2. Base58-encoded Value
+
+The base58-encoded value contains an optional expiration timestamp and a required checksum.
+
+The timestamp is expressed in [the same way as time in the XRP Ledger](https://xrpl.org/basic-data-types.html#specifying-time), with a 32-bit unsigned integer measuring the number of seconds since the XRP Ledger "epoch" of January 1, 2000 (00:00 UTC).
+
+The checksum is calculated in a similar manner to a classic address's checksum, but note that is a checksum over _all_ of the data represented by the extended address.
 
 The checksum is calculated with the following steps.
 1. Decode the account ID from the classic address.
-2. Encode the tag as a little endian 32-bit unsigned integer. If no tag should be used, encode this as zero bytes (effectively omitting it in step 4).
-3. Encode the network ID character as one byte. Since the only network IDs are 'X' and 'T', `utf8` and `ascii` encoding yield the same result.
-4. Concatenate these values: `Buffer.concat([accountID, tagBuffer, networkByte])`
-5. Run the data through a double SHA256 hash. The checksum is the first 4 bytes.
+2. Encode the expiration as a little endian 32-bit unsigned integer. If the address does not expire, encode this as zero bytes (effectively omitting it in step 5).
+3. Encode the tag as a little endian 32-bit unsigned integer. If no tag should be used, encode this as zero bytes (effectively omitting it in step 5).
+4. Encode the network ID character as one byte. Since the only network IDs are 'X' and 'T', `utf8` and `ascii` encoding yield the same result.
+5. Concatenate these values in the following order: `Buffer.concat([networkByte, expirationBuffer, tagBuffer, accountID])`
+6. Run the data through a double SHA256 hash. The checksum is the first 4 bytes.
 
-Encode these 4 bytes in base58 using the same alphabet used to encode classic addresses.
+Encode the expiration with the checksum, in base58. Put the checksum first so that any change to the address/tag/network/expiration will change the first several characters of the resulting address, aiding visual identification of addresses.
+
+```ts
+codec.encode(Buffer.concat([checksum, expirationBuffer]));
+```
 
 #### 3. Delimiter
 

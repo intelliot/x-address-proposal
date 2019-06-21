@@ -1,11 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const crypto = require('crypto');
+const { sha256 } = require('./sha256');
 const baseCodec = require('./base-x');
 const codec = baseCodec('rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz');
-function sha256(payload) {
-    return crypto.createHash('sha256').update(payload).digest();
-}
 // Colloquially, the new format is called an X Address because it
 // starts when 'X' when the address is meant for use on the the
 // production XRP Ledger network. The address starts with 'T'
@@ -46,7 +43,7 @@ class XAddress {
             if (Number.isInteger(tag) === false) {
                 throw new Error(`Invalid tag: ${tag}`);
             }
-            myTagBuffer = Buffer.alloc(8); // 8 bytes = 32 bits
+            myTagBuffer = Buffer.alloc(8); // 8 bytes = 64 bits
             myTagBuffer.writeUInt32LE(tag, 0);
         }
         else {
@@ -100,23 +97,25 @@ class LegacyAddress {
         }
         const networkByte = myNetworkByte;
         // 3. Convert tag to Buffer (UInt32LE)
-        //    To support a 64-bit tag, alloc 16 bytes and fill it appropriately.
-        //    It's a little tricky since the JS 'number' type cannot support it,
+        //    To support a 64-bit tag, fill the 8 bytes (64 bits) appropriately (little-endian).
+        //    It's a little tricky since the JS 'number' type cannot support safely support values over 2^53 - 1,
         //    but it's doable with a BigNumber library.
         let myTagBuffer;
         if (this.tag !== undefined) {
             if (Number.isInteger(this.tag) === false) {
                 throw new Error(`Invalid tag: ${this.tag}`);
             }
-            myTagBuffer = Buffer.alloc(8); // 8 bytes = 32 bits
+            myTagBuffer = Buffer.alloc(8); // 8 bytes = 64 bits
             myTagBuffer.writeUInt32LE(this.tag, 0);
         }
         else {
             myTagBuffer = Buffer.alloc(0);
         }
         const tagBuffer = myTagBuffer;
+        // console.log(myTagBuffer);
         // 4. Concat accountID, tagBuffer, and networkByte to create payload
         const payload = Buffer.concat([accountID, tagBuffer, networkByte]);
+        console.log(payload);
         // 5. SHA256 x 2 and take first 4 bytes as checksum
         const checksum = sha256(sha256(payload)).slice(0, 4);
         // 6. Encode the checksum in base58

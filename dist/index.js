@@ -26,9 +26,9 @@ if (require.main === module) {
             i = i + 2;
         }
         else if (address.slice(0, 1) === 'X' || address.slice(0, 1) === 'T') { // X address
-            const xAddress = new x_address_1.XAddress(address);
-            const tag = xAddress.toLegacyAddress().tag !== undefined ? xAddress.toLegacyAddress().tag : 'undefined';
-            console.log(`${xAddress.toLegacyAddress().classicAddress} ${tag} ${xAddress.toLegacyAddress().networkID}`);
+            const legacyAddress = (new x_address_1.XAddress(address)).toLegacyAddress();
+            const tag = legacyAddress.tag !== undefined ? legacyAddress.tag : 'undefined';
+            console.log(`${legacyAddress.classicAddress} ${tag} ${legacyAddress.networkID}`);
         }
         else {
             console.log(`Invalid address: ${address}`);

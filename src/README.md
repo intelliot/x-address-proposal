@@ -82,25 +82,25 @@ The expiration can be enforced by the X address decoder, where an expired addres
 
 ## Options
 
-Although we have options in developing a new format, including what encoding to use, ideally the resulting addresses will be similar to existing addresses to reduce the likelihood of user confusion as much as possible and, ideally, not requiring developers to implement a new codec.
+Although we have options in developing a new format, including what encoding to use, ideally the resulting addresses will be similar to existing addresses to reduce the likelihood of user confusion as much as possible and, ideally, not require developers to implement a new codec.
 
-Given this constraint, we need to use the Base58Check encoding, leaving us with two options:
+Given this constraint, we need to use Base58 encoding, leaving us with two options:
 
-1. A "tightly packed" format, where the address and tag are encoded using Base58Check as a single unit.
-2. A "loosely packed" format, where the address is encoded using Base58Check and the destination tag is encoded separately and appended to the address.
+1. A "tightly packed" format, where the account ID—or "classic address"—and tag are encoded using Base58Check as a single unit.
+2. A "loosely packed" format, where the classic address is encoded using Base58Check and the destination tag is encoded separately and concatenated into the new address.
 
 The advantage of the "loose" format is that a portion (or substring) of the tagged address will precisely match the classic address. The "tight" format results in an address that shares no common characters with the classic address, except, perhaps, by chance.
 
-This is a massive security advantage because it prevents a malicious actor from modifying the address in the conversion step without being detected. While not all users will care for this level of security, many advanced users will take advantage of this feature to visually observe that the tagged address contains the expected classic address and tag.
+The "loose" format has a security advantage because it prevents a malicious actor from modifying the address in the conversion step without being detected. While not all users will care for this level of security, many advanced users will take advantage of this feature to visually observe that the tagged address contains the expected classic address and tag.
 
 Furthermore, the format adds three additional benefits:
 1. The network ID distinguishes addresses intended for production from those intended for test.
-2. The checksum comes near the beginning of the address. Since the checksum is built on SHA256, it changes dramatically with any small change in the classic address and/or tag and/or network ID. This allows users to distinguish addresses by looking at them, if necessary.
-3. A tagged address is clearly distinct from a classic address because of its dissimilar initial letter. This is a huge benefit from a UX perspective because it is easy to distinguish tagged addresses from classic addresses, which will be necessary because not all software will immediately accept tagged addresses in all of the places where classic addresses are currently accepted. This point will be elaborated upon later in this document.
+2. The checksum comes near the beginning of the address. Since the checksum is built on SHA256, it changes dramatically with any small change in the classic address and/or tag and/or network ID and/or expiration. This allows users to distinguish addresses by looking at them, if necessary.
+3. An Extended Address is clearly distinct from a classic address because of its dissimilar initial letter. This is a huge benefit from a UX perspective because it is easy to distinguish Extended Addresses from classic addresses, which is necessary because not all software will immediately accept Extended Addresses in all of the places where classic addresses are currently accepted. This point will be elaborated upon later in this document.
 
 As will be shown below, the format proposed here is not complex to detect, encode, or decode.
 
-Though it is a "loose" format in the sense that the classic address and tag are readable within the new encoding, these tagged addresses can be used as a full replacement for classic addresses in end-user UIs.
+Though it is a "loose" format in the sense that the classic address and tag are readable within the new encoding, these tagged addresses can be used as a full replacement for classic addresses in end-user UIs. The tag is optional, so even addresses not intended to be used with a tag can be encoded with this format.
 
 Regardless of whether we choose a "tightly packed" or "loosely packed" format, developers will always need to be aware of the classic addresses and destination tags because they are used in the ledger itself, in transaction signing, and in transaction parsing and accounting.
 
@@ -128,7 +128,9 @@ This base58-encoded string is referred to as a "classic address".
 
 ### Proposed format
 
-[TODO: Map of proposed format]
+The new format combines five items together. Note that the following is not a buffer to be encoded, but a representation of the final Extended Address itself:
+
+`[← 1 character network ID →|← encode(required checksum + optional expiration) →|0|← tag →|← classic address →]`
 
 In the proposed format, the following values are concatenated together:
 
@@ -140,11 +142,11 @@ In the proposed format, the following values are concatenated together:
 
 #### 1. Network ID
 
-This character is chosen to be 'X' for production and 'T' for test. For this reason, tagged addresses following this format are referred to as "X addresses" as shorthand.
+This character is chosen to be 'X' for production and 'T' for test.
 
 #### 2. Base58-encoded Value
 
-The base58-encoded value contains an optional expiration timestamp and a required checksum.
+The base58-encoded value contains a required checksum and an optional expiration timestamp.
 
 The timestamp is expressed in [the same way as time in the XRP Ledger](https://xrpl.org/basic-data-types.html#specifying-time), with a 32-bit unsigned integer measuring the number of seconds since the XRP Ledger "epoch" of January 1, 2000 (00:00 UTC).
 
@@ -208,7 +210,7 @@ Extended addresses do not need to have an expiration. Here are the same classic 
 ### Advantages
 
 Both the account ID and the destination tag are protected by the 32-bit checksum.
-We can determine whether the address is packed by examining the initial character of the address: if it is `X` or `T` it is a packed address which may include a tag; if it is `r` it does not. If the initial character is anything else, the address is malformed.
+We can determine whether the address is an Extended Address by examining the initial character of the address: if it is `X` or `T` it is a packed address which may include a tag; if it is `r` it does not. If the initial character is anything else, the address is malformed.
 
 The packed address's "suffix" is the same as the unpacked address, which can be useful and comforting to users (since it is clear which classic address is encoded by the packed address).
 
@@ -216,9 +218,9 @@ This consistency can be especially helpful for users in the context of trust lin
 
 ### Disadvantages
 
-Support for tagged addresses must be added to client software, which may take time.
+Support for Extended Addresses must be added to client software, which may take time.
 
-Parsing a tagged address is more complex than only parsing a classic address.
+Parsing an Extended Address is more complex than only parsing a classic address.
 
 #### Amelioration
 
@@ -226,7 +228,7 @@ Users will be able to easily tell if the address they want to use is an X addres
 
 Exchanges etc. can use explanatory verbiage such as: "We have added support for X addresses."
 
-If "X address" sounds too colloquial, they can say: "We have added support for tagged addresses." or "We have added support for packed addresses." However, this may be less informative since it is not immediately obvious how to tell whether an address is tagged/packed or not.
+If "X address" sounds too colloquial, they can say: "We have added support for Extended Addresses." However, this may be less informative since it is not immediately obvious how to tell whether an address is an Extended Address or not.
 
 For client software developers, to facilitate adoption and testing of the new format, open source tagged address parsers will be included in `ripple-lib` and made available in multiple programming languages.
 
@@ -239,11 +241,11 @@ rippled submit secret '{
     "TransactionType":"Payment",
     "Account":"r3kmLJN5D28dHuH8vZNUZpMC43pEHpaocV",
     "Amount":"200000000",
-    "Destination":"XhUFrT50276rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf"
+    "Destination":"XpwjJ430276rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf"
 }'
 ```
 
-The server would unpack `XhUFrT50276rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf` to `rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf` and a destination tag of 276, and process the submission as if it had been:
+The server would unpack `XpwjJ430276rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf` to `rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf` and a destination tag of 276, and process the submission as if it had been:
 
 ```
 rippled submit secret '{
@@ -261,7 +263,7 @@ Third party tools that accept user input should allow users to enter such addres
 
 ## Questions
 
-Below is a list of questions to be addressed as a result of this requirements document:
+Below is a list of questions and answers:
 
 ### Should the format include both a source and a destination tag?
 
@@ -273,15 +275,15 @@ Yes, this proposal does this by encoding the classic address and destination tag
 
 ### There's potential for confusion. Can we help?
 
-Users may not understand the semantics of a packed address sufficiently. This means that errors or confusion are possible as a result. Two exchange users might wonder why their deposit addresses are now different. Or one user may ask a friend what the deposit address is and, unknowingly, deposit funds into their friend's account.
-The first is obviously not a problem with existing addresses, and the second is less likely to be an issue than these single addresses. The UX of third parties that choose to use the new format will have to make it clear to users that the address is unique for them.
+Users may not understand the semantics of an Extended Address sufficiently. This means that errors or confusion are possible as a result. Two exchange users might wonder why their deposit addresses are now different. Or one user may ask a friend what the deposit address is and, unknowingly, deposit funds into their friend's account.
+The first is obviously not a problem with existing addresses, and the second is less likely to be an issue with single-use Extended Addresses. The UX of third parties that choose to use the new format will have to make it clear to users that the address is unique for them.
 
 The server could add information to the metadata associated with a transaction to help tools to map addresses. For example, the server could add the following:
 
 ```
 "TaggedAddresses": [
     { 
-        "XhUFrT50276rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf": {
+        "XpwjJ430276rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf": {
             "Address": "rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf",
             "Tag": 276
         }
@@ -303,7 +305,7 @@ No. It would be a huge change and, potentially, breaking one and there aren't an
 
 ## Sample TypeScript/JavaScript Implementation
 
-The following is an example of a TypeScript function which will encode an address in a tag in a way that complies with this specification:
+The following is an example of a TypeScript function which will encode an Extended Address in a way that complies with this specification:
 
 ```ts
 // 1. Decode classicAddress to accountID
@@ -326,30 +328,47 @@ if (this.tag !== undefined) {
   if (Number.isInteger(this.tag) === false) {
     throw new Error(`Invalid tag: ${this.tag}`);
   }
-  myTagBuffer = Buffer.alloc(8);
+  myTagBuffer = Buffer.alloc(8); // 8 bytes = 64 bits
   myTagBuffer.writeUInt32LE(this.tag, 0);
 } else {
   myTagBuffer = Buffer.alloc(0);
 }
 const tagBuffer: Buffer = myTagBuffer;
 
-// 4. Concat accountID, tagBuffer, and networkByte to create payload
-const payload = Buffer.concat([accountID, tagBuffer, networkByte]);
+// 4. Convert expiration to Buffer (UInt32LE)
+let myExpirationBuffer: Buffer;
+if (this.expiration !== undefined) {
+  if (Number.isInteger(this.expiration) === false) {
+    throw new Error(`Invalid expiration: ${this.expiration}`);
+  }
+  myExpirationBuffer = Buffer.alloc(4); // 4 bytes = 32 bits
+  myExpirationBuffer.writeUInt32LE(this.expiration, 0);
+} else {
+  myExpirationBuffer = Buffer.alloc(0); // no expiration
+}
+const expirationBuffer: Buffer = myExpirationBuffer;
 
-// 5. SHA256 x 2 and take first 4 bytes as checksum
+// 5. Concat networkByte, expirationBuffer, tagBuffer, and accountID
+//    to create the payload to be checksummed.
+//    NB: The ordering of these values has been changed from an earlier draft of this spec.
+const payload = Buffer.concat([networkByte, expirationBuffer, tagBuffer, accountID]);
+
+// 6. SHA256 x 2 and take first 4 bytes as checksum
 const checksum = sha256(sha256(payload)).slice(0, 4);
 
-// 6. Encode the checksum in base58
-const checksum_base58 = codec.encode(checksum);
+// 7. Encode the expiration with the checksum, in base58.
+//    NB: Put the checksum first so that any change to the address/tag/network/expiration
+//        changes the first several characters of the resulting address.
+const checksumAndExpirationBase58 = codec.encode(Buffer.concat([checksum, expirationBuffer]));
 
-// 7. Decide to use '0' as our delimiter. It must be a character that
+// 8. Decide to use '0' as our delimiter. It must be a character that
 //    does not appear in our base58 alphabet, so it can only be '0' or 'l'
 const DELIMITER = '0';
 
-// 8. Form the "X Address" and return it:
+// 9. Form the "X Address" and return it:
 //    - Start with 'X' or 'T' to make the address format obvious;
 //    - Lead with the checksum so that any (valid) change to the
-//      address/tag/network changes the first several characters of
+//      address/tag/network/expiration changes the first several characters of
 //      the resulting address;
 //    - Append the tag next for easy parsing.
 //      To get the tag, take everything between DELIMITER and 'r'
@@ -361,10 +380,10 @@ const DELIMITER = '0';
 //      of the string, (correctly) appears to be opaque and not user-editable.
 //    - Finish with the classic address.
 const tagString = this.tag !== undefined ? this.tag.toString() : '';
-return new XAddress(networkByte.toString() + checksum_base58 + DELIMITER + tagString + this.classicAddress);
+return new XAddress(networkByte.toString() + checksumAndExpirationBase58 + DELIMITER + tagString + this.classicAddress);
 ```
 
-This requires some supporting code; please [view the full example here](./src/x-address.ts).
+This requires some supporting code; please [view the full implmentation here](./src/x-address.ts).
 
 To run the example (requires node.js and npm):
 
@@ -376,7 +395,7 @@ To run the example (requires node.js and npm):
 Try:
 
 ```
-node . XsjB8w300rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf
+node . Xscra3e00rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf
 ```
 
 ```

@@ -74,9 +74,8 @@ module.exports = function base(ALPHABET) {
         if (source.length === 0)
             return Buffer.alloc(0);
         let psz = 0;
-        // Skip leading spaces.
-        if (source[psz] === ' ')
-            return;
+        // Skip leading and trailing spaces.
+        source = source.trim();
         // Skip and count leading '1's.
         let zeroes = 0;
         let length = 0;
@@ -93,7 +92,7 @@ module.exports = function base(ALPHABET) {
             let carry = BASE_MAP[source.charCodeAt(psz)];
             // Invalid character
             if (carry === 255)
-                return;
+                throw new Error('Invalid character (carry === 255)');
             let i = 0;
             for (let it = size - 1; (carry !== 0 || i < length) && (it !== -1); it--, i++) {
                 carry += (BASE * b256[it]) >>> 0;
@@ -105,9 +104,6 @@ module.exports = function base(ALPHABET) {
             length = i;
             psz++;
         }
-        // Skip trailing spaces.
-        if (source[psz] === ' ')
-            return;
         // Skip leading zeroes in b256.
         let it = size - length;
         while (it !== size && b256[it] === 0) {

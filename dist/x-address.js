@@ -18,12 +18,29 @@ class XAddress {
             throw new Error(`Invalid first character: ${first}`);
         }
         const networkByte = Buffer.from(first);
-        // 2. Take everything between that character and the first '0', as the checksum
+        // 2. Take everything between that character and the first '0', as the expiration and full checksum
         const delimiterPosition = this.xAddress.indexOf('0');
         if (delimiterPosition === -1) {
             throw new Error(`Missing delimiter: ${this.xAddress}`);
         }
-        const checksum = this.xAddress.slice(1, delimiterPosition);
+        const checksumAndExpirationBase58 = this.xAddress.slice(1, delimiterPosition);
+        const checksumAndExpiration = codec.decode(checksumAndExpirationBase58);
+        let expirationBuffer;
+        let expiration;
+        if (checksumAndExpiration.length === 4) {
+            // expiration is undefined
+            expirationBuffer = Buffer.alloc(0);
+            expiration = undefined;
+        }
+        else if (checksumAndExpiration.length === 8) {
+            expirationBuffer = checksumAndExpiration.slice(4, 8);
+            expiration = expirationBuffer.readUInt32LE(0);
+        }
+        else {
+            // Must be exactly 4 or 8 bytes
+            throw new Error(`Invalid checksum/expiration length: ${checksumAndExpiration.length}`);
+        }
+        const checksumBuffer = checksumAndExpiration.slice(0, 4);
         // 3. Take everything between that '0' and the next 'r', as the tag
         const classicAddressPosition = this.xAddress.indexOf('r', delimiterPosition + 1);
         if (classicAddressPosition === -1) {
@@ -50,17 +67,17 @@ class XAddress {
             myTagBuffer = Buffer.alloc(0);
         }
         const tagBuffer = myTagBuffer;
-        // 6. Concat accountID, tagBuffer, and networkByte to create payload
-        const payload = Buffer.concat([accountID, tagBuffer, networkByte]);
+        // 6. Concat networkByte, expirationBuffer, tagBuffer, and accountID
+        //    to create the payload to be checksummed.
+        //    NB: The ordering of these values has been changed from an earlier draft of this spec.
+        const payload = Buffer.concat([networkByte, expirationBuffer, tagBuffer, accountID]);
         // 7. SHA256 x 2 and take first 4 bytes as checksum
         const computedChecksum = sha256(sha256(payload)).slice(0, 4);
-        // 8. Encode the checksum in base58
-        const computedChecksum_base58 = codec.encode(computedChecksum);
-        // 9. Ensure checksums match
-        if (computedChecksum_base58 !== checksum) {
-            throw new Error(`Invalid checksum: ${checksum}`);
+        // 8. Ensure checksums match
+        if (computedChecksum.equals(checksumBuffer) == false) {
+            throw new Error(`Invalid checksum (hex): ${checksumBuffer.toString('hex').toUpperCase()}`);
         }
-        // 10. Set networkID based on first character
+        // 9. Set networkID based on first character
         let networkID;
         if (first === 'X') {
             networkID = 'production';
@@ -71,15 +88,41 @@ class XAddress {
         else {
             throw new Error(`Invalid first character: ${first}`); // Cannot happen; just to double-check (invariant)
         }
-        return new LegacyAddress(classicAddress, tag, networkID);
+        return new LegacyAddress(classicAddress, tag, networkID, expiration);
+    }
+    toJSON() {
+        return describeAddress(this.toLegacyAddress(), this);
+    }
+    toString() {
+        return this.xAddress;
     }
 }
 exports.XAddress = XAddress;
 class LegacyAddress {
-    constructor(classicAddress, tag, networkID) {
+    constructor(classicAddress, tag, networkID, 
+    //
+    // If `expiration` is a string, it is parsed with JavaScript's Date.parse(),
+    // which takes ISO 8601 date-time format (such as "2011-10-10T14:48:00").
+    //
+    // If it is a number, it is interpreted as the number of seconds since
+    // the XRP Ledger "epoch" time of 2000-01-01 00:00:00 UTC.
+    //
+    // If the address/tag never expires, set `expiration` to `undefined`.
+    //
+    expiration) {
         this.classicAddress = classicAddress;
         this.tag = tag;
         this.networkID = networkID;
+        if (typeof expiration === 'string') {
+            const unixTime = Date.parse(expiration);
+            this.expiration = Math.round(unixTime / 1000) - 0x386D4380;
+        }
+        else if (typeof expiration === 'number') {
+            this.expiration = expiration;
+        }
+        else {
+            this.expiration = undefined; // does not expire
+        }
     }
     toXAddress() {
         // 1. Decode classicAddress to accountID
@@ -112,21 +155,36 @@ class LegacyAddress {
             myTagBuffer = Buffer.alloc(0);
         }
         const tagBuffer = myTagBuffer;
-        // console.log(myTagBuffer);
-        // 4. Concat accountID, tagBuffer, and networkByte to create payload
-        const payload = Buffer.concat([accountID, tagBuffer, networkByte]);
-        console.log(payload);
-        // 5. SHA256 x 2 and take first 4 bytes as checksum
+        // 4. Convert expiration to Buffer (UInt32LE)
+        let myExpirationBuffer;
+        if (this.expiration !== undefined) {
+            if (Number.isInteger(this.expiration) === false) {
+                throw new Error(`Invalid expiration: ${this.expiration}`);
+            }
+            myExpirationBuffer = Buffer.alloc(4); // 4 bytes = 32 bits
+            myExpirationBuffer.writeUInt32LE(this.expiration, 0);
+        }
+        else {
+            myExpirationBuffer = Buffer.alloc(0); // no expiration
+        }
+        const expirationBuffer = myExpirationBuffer;
+        // 5. Concat networkByte, expirationBuffer, tagBuffer, and accountID
+        //    to create the payload to be checksummed.
+        //    NB: The ordering of these values has been changed from an earlier draft of this spec.
+        const payload = Buffer.concat([networkByte, expirationBuffer, tagBuffer, accountID]);
+        // 6. SHA256 x 2 and take first 4 bytes as checksum
         const checksum = sha256(sha256(payload)).slice(0, 4);
-        // 6. Encode the checksum in base58
-        const checksum_base58 = codec.encode(checksum);
-        // 7. Decide to use '0' as our delimiter. It must be a character that
+        // 7. Encode the expiration with the checksum, in base58.
+        //    NB: Put the checksum first so that any change to the address/tag/network/expiration
+        //        changes the first several characters of the resulting address.
+        const checksumAndExpirationBase58 = codec.encode(Buffer.concat([checksum, expirationBuffer]));
+        // 8. Decide to use '0' as our delimiter. It must be a character that
         //    does not appear in our base58 alphabet, so it can only be '0' or 'l'
         const DELIMITER = '0';
-        // 8. Form the "X Address" and return it:
+        // 9. Form the "X Address" and return it:
         //    - Start with 'X' or 'T' to make the address format obvious;
         //    - Lead with the checksum so that any (valid) change to the
-        //      address/tag/network changes the first several characters of
+        //      address/tag/network/expiration changes the first several characters of
         //      the resulting address;
         //    - Append the tag next for easy parsing.
         //      To get the tag, take everything between DELIMITER and 'r'
@@ -138,7 +196,13 @@ class LegacyAddress {
         //      of the string, (correctly) appears to be opaque and not user-editable.
         //    - Finish with the classic address.
         const tagString = this.tag !== undefined ? this.tag.toString() : '';
-        return new XAddress(networkByte.toString() + checksum_base58 + DELIMITER + tagString + this.classicAddress);
+        return new XAddress(networkByte.toString() + checksumAndExpirationBase58 + DELIMITER + tagString + this.classicAddress);
+    }
+    toJSON() {
+        return describeAddress(this, this.toXAddress());
+    }
+    toString() {
+        return `${this.classicAddress} ${this.tag} ${this.networkID} ${this.expiration}`;
     }
 }
 exports.LegacyAddress = LegacyAddress;
@@ -167,4 +231,26 @@ function decodeAccountID(base58) {
     }
     // 6. The account ID is the last 20 bytes.
     return unchecked;
+}
+function describeAddress(legacy, x) {
+    let expirationDate = undefined;
+    let secondsUntilExpiration = undefined;
+    let status = 'ACTIVE';
+    if (legacy.expiration != undefined && Number.isInteger(legacy.expiration)) {
+        expirationDate = new Date((legacy.expiration + 0x386D4380) * 1000);
+        secondsUntilExpiration = Math.round((expirationDate.getTime() - Date.now()) / 1000);
+        if (secondsUntilExpiration < 0) {
+            status = 'EXPIRED';
+        }
+    }
+    return {
+        "X Address": x.xAddress,
+        "Classic Address": legacy.classicAddress,
+        "Tag": legacy.tag,
+        "Network ID": legacy.networkID,
+        "Expiration in seconds since XRP epoch": legacy.expiration,
+        "Expiration in ISO 8601": expirationDate === undefined ? undefined : expirationDate.toISOString(),
+        "Seconds until expiration": secondsUntilExpiration,
+        "Status": status
+    };
 }

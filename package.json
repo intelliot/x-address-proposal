@@ -1,6 +1,6 @@
 {
   "name": "x-address",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Convert an XRP Ledger legacy address to an X address, or vice versa.",
   "license": "MIT",
   "main": "dist/index.js",
@@ -13,6 +13,7 @@
   },
   "scripts": {
     "compile": "tsc",
-    "build": "npm run compile && pkg . --out-path bin"
+    "build": "npm run compile && pkg . --out-path bin",
+    "docgen": "ts-node ./src/docgen"
   }
 }

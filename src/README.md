@@ -16,9 +16,15 @@ Created:     2019-06-18
 
 ## Abstract
 
-Destination tags provide a way for exchanges, payment processors, corporates or entities which accept incoming payments, escrows, checks and similar transactions to use a single receiving wallet while being able to disambiguate incoming transactions by instructing the senders to include a destination tag.
+Destination tags provide a way for exchanges, payment processors, corporates or entities which accept incoming payments, escrows, checks and similar transactions to use a single receiving account (wallet) while being able to disambiguate incoming transactions by instructing the senders to include a destination tag.
 
 This draft presents a way of encoding a tagged address: an address that contains both the target wallet as well as a destination tag as a single unit.
+
+We further extend the tagged address to encode two other values:
+- A network ID indicating whether the address is intended for use in production or in test
+- An optional expiration to be enforced by client software
+
+The result is referred to as an Extended Address or X Address.
 
 ## Motivation
 
@@ -39,11 +45,40 @@ This proposal seeks to address this problem by defining a standard format to rep
 
 Furthermore, this new format distinguishes between production (aka mainnet) and test (aka test net or altnet).
 
+### Motivation for expiration
+
+Destination tags are 32-bit unsigned integers, so the maximum value is 2^32 - 1, or 4294967295. While this is a decent amount of granularity, it is not, for instance, enough to give each human on Earth a unique destination tag. Furthermore, we recommend against using sequential tags (i.e., do not auto-increment them) because these are public values permanently recorded in the ledger history and viewable by the world. It is best to avoid a direct mapping of user accounts (for example, in an exchange's internal system) to destination tags. Also, this potentially reveals other information, such as the service's number of users.
+
+The best way to use destination tags is to randomly assign them uniquely for each *transaction* (so that even a single user on a given system will make use of many different tags). This provides better privacy. Save the mapping internally (e.g. "Deposit for destination tag #1234 is designated for user #9876"). You could even limit the tag to one single use only. If an incoming payment has a destination tag that is not mapped to a user, you could send the money back with an error message.
+
+Used in this way, a popular service could quickly run out of destination tags. You can delete the mapping after a day or a week or so if it is unused.
+
+There is a risk that a user will use an address/tag after it has been removed from the system, or the service provider no longer wants any funds to be sent to that destination tag. Thus, an expiring address/tag is useful in many of the cases where destination tags are used.
+
+### Use cases for expiration
+
+In many cases, destination tags should not be valid forever. Given XRP's fast transaction speed, it should be reasonable to have tags expire in relatively short periods of time. When generating an address, randomly assign a new destination tag to the user, as described above. Beyond that, some rough guidelines/expectations follow:
+
+- **Exchanges:**: It is reasonable to have the tag expire in 24-48 hours from generation, and indicate this fact to the user on the deposit page of the site. Internally, the exchange can allow some leeway for internal accounting, not deleting/invalidating the tag <-> user mapping for, say, 3-4 days. If the exchange wants or needs to transition away from the use of a particular account, expirations provide them with some assurance that users should stop sending to the old account within a few days.
+- **Merchants:**: It is reasonable to have the tag expire shortly after you expect the customer to send the payment. For example, if you expect payment in about 2 minutes, you can set the address to expire in 5 minutes. Remember that a customer can always request a new address if they fail to make payment in the expected timeframe, and you can (if you choose) simply generate a new X Address for the same account and tag as before, and merely extending the expiration.
+
+Of course, shorter or longer expirations should be fine as well; it's a convenience trade-off. It's not a bad idea to set that an address expires in a year, for example; the account does not actually become invalid or anything. It is merely an indicator to the sender that they should check with the receipient (out of band) to make sure there isn't a different address that they would now prefer.
+
+// TODO: move to FAQ
+
+Note that expiration is optional, so service providers can always generate addresses that never expire. It is only an additional layer of safety, similar to encoding tags in addresses: it eliminates a class of potential mistakes. Expirations are for convenience and do not affect anything in the ledger data or transaction data.
+
+Generally, the rule of thumb is that the expiration should prevent misuse without extra knowledge or effort from users.
+
 ## Limitations
 
 We are not looking to change the on-ledger format; that is, the new style addresses can't be used for fields where an `AccountID` is expected in the binary format. Instead, the packed address will be detected and decoded at higher levels (for example, by the client software, `ripple-lib` or the RPC and WebSocket APIs in `rippled`), verified and then split into distinct fields (e.g. `sfDestination` and `sfDestinationTag`) as appropriate, to assemble the underlying transaction.
 
 This new address style incorporates the destination tag and a network ID. By updating software to understand such packed addresses, we improve the UX, while intelligently unpacking such addresses into their constituent parts for the underlying system.
+
+#### Limitations of expiration
+
+The expiration can be enforced by the X address decoder, where an expired address will be detected as "invalid". The sender should refuse to send to the expired address, and the user should fetch a new address/tag from the service provider. There are no changes to transactions or consensus for this; it will be trivial for advanced users to override the expiration. However, it is a very valuable feature to have because defines a specific lifetime for an address/tag pair, sets expectations, and prevents user error.
 
 ## Options
 

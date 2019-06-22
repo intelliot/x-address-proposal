@@ -13,5 +13,5 @@ module.exports = function tablegen(pattern) {
     tags.forEach((tag) => {
         table += `| ${tag === undefined ? 'None' : tag} | ${expiration} | ${(new x_address_1.LegacyAddress(classicAddress, tag, network, expiration).toXAddress().xAddress)} |\n`;
     });
-    return table;
+    return table.slice(0, -1);
 };

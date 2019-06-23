@@ -26,9 +26,9 @@ const obs = new PerformanceObserver((items: PerformanceObserverEntryList) => {
   } else {
     const percentFaster = ((baseline.duration - item.duration) / baseline.duration) * 100;
     if (percentFaster > 0) {
-      comparison = `${percentFaster}% faster`;
+      comparison = `${Math.round(percentFaster)}% faster`;
     } else {
-      comparison = `${-percentFaster}% slower`;
+      comparison = `${Math.round(-percentFaster)}% slower`;
     }
   }
   table    += `| ${item.name} | ${Math.round(item.duration)} | ${comparison} |\n`;

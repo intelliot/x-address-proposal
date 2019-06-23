@@ -14,6 +14,7 @@
   "scripts": {
     "compile": "tsc",
     "build": "npm run compile && pkg . --out-path bin",
-    "docgen": "ts-node ./src/docgen"
+    "docgen": "ts-node ./src/docgen",
+    "performance": "ts-node ./src/performance"
   }
 }

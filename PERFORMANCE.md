@@ -2,7 +2,7 @@
 
 | Hash(es) | Duration (ms) | Comparison |
 | -------- | ------------- | ---------- |
-| sha256x2 | 6568 | Baseline |
-| sha512x2 | 6933 | 5.5701492254660705% slower |
-| sha256 | 5663 | 13.775637632853247% faster |
-| sha512 | 5599 | 14.743640398199991% faster |
+| sha256x2 | 6588 | Baseline |
+| sha512x2 | 6728 | 2% slower |
+| sha256 | 5441 | 17% faster |
+| sha512 | 5560 | 16% faster |

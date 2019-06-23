@@ -1,4 +1,4 @@
-const {sha256} = require('./sha256');
+const {hash} = require('./hash');
 const baseCodec = require('./base-x');
 const codec = baseCodec('rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz');
 
@@ -14,7 +14,7 @@ class XAddress {
     this.xAddress = xAddress;
   }
 
-  public toLegacyAddress(): LegacyAddress {
+  public toLegacyAddress(hashFuncName: 'sha512x2' | 'sha256x2' | 'sha512' | 'sha256' = 'sha256x2'): LegacyAddress {
     // 1. Encode first character, which must be X or T
     const first = this.xAddress.slice(0, 1);
     if (first != 'X' && first != 'T') {
@@ -80,7 +80,7 @@ class XAddress {
     const payload = Buffer.concat([networkByte, expirationBuffer, tagBuffer, accountID]);
 
     // 7. SHA256 x 2 and take first 4 bytes as checksum
-    const computedChecksum = sha256(sha256(payload)).slice(0, 4);
+    const computedChecksum = hash(payload, hashFuncName).slice(0, 4);
 
     // 8. Ensure checksums match
     if (computedChecksum.equals(checksumBuffer) == false) {
@@ -148,7 +148,7 @@ class LegacyAddress {
     }
   }
 
-  public toXAddress(): XAddress {
+  public toXAddress(hashFuncName: 'sha512x2' | 'sha256x2' | 'sha512' | 'sha256' = 'sha256x2'): XAddress {
     // 1. Decode classicAddress to accountID
     const accountID: Buffer = decodeAccountID(this.classicAddress);
 
@@ -198,7 +198,7 @@ class LegacyAddress {
     const payload = Buffer.concat([networkByte, expirationBuffer, tagBuffer, accountID]);
 
     // 6. SHA256 x 2 and take first 4 bytes as checksum
-    const checksum = sha256(sha256(payload)).slice(0, 4);
+    const checksum = hash(payload, hashFuncName).slice(0, 4);
 
     // 7. Encode the expiration with the checksum, in base58.
     //    NB: Put the checksum first so that any change to the address/tag/network/expiration
@@ -244,7 +244,7 @@ function decodeAccountID(base58: string): Buffer {
     throw new Error(`Invalid input size: ${output.length} must be < 5`);
   }
   // 3. Verify checksum
-  const computed = sha256(sha256(output.slice(0, -4))).slice(0, 4);
+  const computed = hash(output.slice(0, -4), 'sha256x2').slice(0, 4);
   const checksum = output.slice(-4);
   if (computed.equals(checksum) == false) {
     throw new Error(`Invalid checksum: ${checksum}`);

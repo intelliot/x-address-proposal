@@ -187,7 +187,9 @@ In the following table, we present how the classic address `rGWrZyQqhTp9Xu7G5Pka
 | 2 | 2019-12-31T23:59:59 | XbH2MxCG2X5U02rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 32 | 2019-12-31T23:59:59 | XEvcbeKFwxx7032rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 276 | 2019-12-31T23:59:59 | XK8hPmBJ14w30276rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
+| 5000 | 2019-12-31T23:59:59 | XhYq9KwMLvZS05000rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 65591 | 2019-12-31T23:59:59 | XGHSRspEm2MS065591rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
+| 101010 | 2019-12-31T23:59:59 | XafZkqFGwHSh0101010rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 16781933 | 2019-12-31T23:59:59 | X6MPyM2XB3PW016781933rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 4294967294 | 2019-12-31T23:59:59 | XWewqZWiXqR404294967294rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 4294967295 | 2019-12-31T23:59:59 | XcpnndkJQQBW04294967295rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
@@ -202,7 +204,9 @@ In the following table, we present extended address encodings for the same class
 | 2 | 2019-12-31T23:59:59 | TgcD8GKGM2z302rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 32 | 2019-12-31T23:59:59 | TUQdGNh7bKNU032rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 276 | 2019-12-31T23:59:59 | TboRoZyEXySU0276rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
+| 5000 | 2019-12-31T23:59:59 | TWPvYU3AAjFg05000rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 65591 | 2019-12-31T23:59:59 | TEMfmWabruBJ065591rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
+| 101010 | 2019-12-31T23:59:59 | TBhZZokmqGA80101010rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 16781933 | 2019-12-31T23:59:59 | TRcoy1LejHHa016781933rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 4294967294 | 2019-12-31T23:59:59 | TpofQUJVfCQ304294967294rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 4294967295 | 2019-12-31T23:59:59 | TMK7nedu9Be704294967295rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
@@ -226,7 +230,9 @@ Extended addresses do not need to have an expiration. Here are the same classic 
 | 2 | None | XpnDk8B02rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 32 | None | XhhYuuC032rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 276 | None | XpwjJ430276rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
+| 5000 | None | Xh4bkaf05000rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 65591 | None | XhFYJZN065591rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
+| 101010 | None | XpohpMk0101010rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 16781933 | None | Xns41ZQ016781933rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 4294967294 | None | XFcV9L04294967294rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 4294967295 | None | XhxQwkp04294967295rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
@@ -239,7 +245,9 @@ Extended addresses do not need to have an expiration. Here are the same classic 
 | 2 | None | TsPNQhL02rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 32 | None | TadYEHy032rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 276 | None | TaoojB70276rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
+| 5000 | None | TsMz86705000rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 65591 | None | Tnph12h065591rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
+| 101010 | None | TaTGmsh0101010rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 16781933 | None | Ta55w5G016781933rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 4294967294 | None | TqR9Hq04294967294rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 4294967295 | None | Ta4WiPu04294967295rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |

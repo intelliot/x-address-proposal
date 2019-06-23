@@ -1,3 +1,5 @@
+import { HashType } from "./hash";
+
 const {hash} = require('./hash');
 const baseCodec = require('./base-x');
 const codec = baseCodec('rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz');
@@ -14,7 +16,7 @@ class XAddress {
     this.xAddress = xAddress;
   }
 
-  public toLegacyAddress(hashFuncName: 'sha512x2' | 'sha256x2' | 'sha512' | 'sha256' = 'sha256x2'): LegacyAddress {
+  public toLegacyAddress(hashFuncName: HashType = 'sha256x2'): LegacyAddress {
     // 1. Encode first character, which must be X or T
     const first = this.xAddress.slice(0, 1);
     if (first != 'X' && first != 'T') {
@@ -148,7 +150,7 @@ class LegacyAddress {
     }
   }
 
-  public toXAddress(hashFuncName: 'sha512x2' | 'sha256x2' | 'sha512' | 'sha256' = 'sha256x2'): XAddress {
+  public toXAddress(hashFuncName: HashType = 'sha256x2'): XAddress {
     // 1. Decode classicAddress to accountID
     const accountID: Buffer = decodeAccountID(this.classicAddress);
 

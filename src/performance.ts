@@ -5,6 +5,8 @@ export { LegacyAddress, XAddress, NetworkID };
 
 const { PerformanceObserver, performance } = require('perf_hooks');
 
+const heading = `# Performance\n\nConverts 200,000 legacy addresses to X addresses, and back: performing 400,000 hashes in order to compute the checksum and verify it.\n\nGenerate this file by running: \`yarn performance\`\n\n`;
+
 let table = `| Hash(es) | Duration (ms) | Comparison |\n`;
 table    += `| -------- | ------------- | ---------- |\n`;
 
@@ -64,6 +66,6 @@ function runTest({address, networkID, hash}: {address: string, networkID: Networ
 }
 
 const fs = require('fs');
-fs.writeFileSync('./PERFORMANCE.md', `# Performance\n\n` + table);
+fs.writeFileSync('./PERFORMANCE.md', heading + table);
 
 console.log('Generated PERFORMANCE.md');

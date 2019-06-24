@@ -25,11 +25,11 @@ class XAddress {
     const networkByte = Buffer.from(first);
 
     // 2. Take everything between that character and the first '0', as the expiration and full checksum
-    const delimiterPosition = this.xAddress.indexOf('0');
-    if (delimiterPosition === -1) {
-      throw new Error(`Missing delimiter: ${this.xAddress}`);
+    const separatorPosition = this.xAddress.indexOf('0');
+    if (separatorPosition === -1) {
+      throw new Error(`Missing separator: ${this.xAddress}`);
     }
-    const checksumAndExpirationBase58 = this.xAddress.slice(1, delimiterPosition);
+    const checksumAndExpirationBase58 = this.xAddress.slice(1, separatorPosition);
     const checksumAndExpiration: Buffer = codec.decode(checksumAndExpirationBase58);
 
     let expirationBuffer: Buffer;
@@ -49,11 +49,11 @@ class XAddress {
     const checksumBuffer = checksumAndExpiration.slice(0, 4);
 
     // 3. Take everything between that '0' and the next 'r', as the tag
-    const classicAddressPosition = this.xAddress.indexOf('r', delimiterPosition + 1);
+    const classicAddressPosition = this.xAddress.indexOf('r', separatorPosition + 1);
     if (classicAddressPosition === -1) {
       throw new Error(`Missing classic address: ${this.xAddress}`);
     }
-    const tagString = this.xAddress.slice(delimiterPosition + 1, classicAddressPosition);
+    const tagString = this.xAddress.slice(separatorPosition + 1, classicAddressPosition);
     const tag: number | undefined = tagString === '' ? undefined : Number(tagString);
     if (tag !== undefined && isNaN(tag)) {
       throw new Error(`Invalid tag: ${tagString}`);
@@ -207,9 +207,9 @@ class LegacyAddress {
     //        changes the first several characters of the resulting address.
     const checksumAndExpirationBase58 = codec.encode(Buffer.concat([checksum, expirationBuffer]));
 
-    // 8. Decide to use '0' as our delimiter. It must be a character that
+    // 8. Decide to use '0' as our separator. It must be a character that
     //    does not appear in our base58 alphabet, so it can only be '0' or 'l'
-    const DELIMITER = '0';
+    const SEPARATOR = '0';
 
     // 9. Form the "X Address" and return it:
     //    - Start with 'X' or 'T' to make the address format obvious;
@@ -217,16 +217,16 @@ class LegacyAddress {
     //      address/tag/network/expiration changes the first several characters of
     //      the resulting address;
     //    - Append the tag next for easy parsing.
-    //      To get the tag, take everything between DELIMITER and 'r'
+    //      To get the tag, take everything between SEPARATOR and 'r'
     //      (since a classic address will always start with 'r').
     //      Notice that if we had put the tag after the address, we would
-    //      need to add a second delimiter to avoid ambiguity: the numbers
+    //      need to add a second separator to avoid ambiguity: the numbers
     //      1-9 are all valid base58 characters in our alphabet.
     //      An added benefit of this approach is that the tag, in the middle
     //      of the string, (correctly) appears to be opaque and not user-editable.
     //    - Finish with the classic address.
     const tagString = this.tag !== undefined ? this.tag.toString() : '';
-    return new XAddress(networkByte.toString() + checksumAndExpirationBase58 + DELIMITER + tagString + this.classicAddress);
+    return new XAddress(networkByte.toString() + checksumAndExpirationBase58 + SEPARATOR + tagString + this.classicAddress);
   }
 
   public toJSON(): object {

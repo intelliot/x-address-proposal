@@ -125,15 +125,16 @@ The new format combines five items together. Note that the following is not a bu
 
 In the proposed format, the following values are concatenated together:
 
-1. An initial character indicating the network ID.
-2. A base58-encoded value containing an optional expiration timestamp and a checksum.
-3. A delimiter, chosen to be '0'.
+1. The '''initial character''' indicating the network where this address can be used: `X` for production or `T` for test.
+2. The '''required checksum and optional expiration timestamp''' encoded in base58.
+3. The '''separator''', which is always "0"<ref>'''Why include a separator in addresses?''' That way the checksum/expiration part is unambiguously separated from the tag part. It must be a character that
+//    does not appear in our base58 alphabet, so it can only be '0' or 'l'  It must be a character that does not appear in our base58 alphabet, so it can only be '0' or 'l'. With this specification, '0' is chosen.
 4. A tag.
 5. A classic address.
 
 #### 1. Network ID
 
-This character is chosen to be 'X' for production and 'T' for test.
+This character is chosen to be `X` for production and `T` for test.
 
 #### 2. Base58-encoded Value
 
@@ -159,9 +160,9 @@ codec.encode(Buffer.concat([checksum, expirationBuffer]));
 
 [1] By placing the checksum first in the data to be encoded, we induce any change to the address/tag/network/expiration to change the first several characters of the resulting address—usually the 4-6 characters after the initial X or T. This aids visual identification of the address, and is a security benefit as well. Consider smaller embedded screens, where users have to horizontally scroll (or wait) to see the entire address. If you have an identical prefix despite different destination tags, it would be easier for an attacker to trick a user into sending funds to an unintended destination. This can occur if users fail to verify both the beginning and the end of the string. With the X address format, verifying the first ~6 characters of the string should be sufficient to thwart most attacks of this type.
 
-#### 3. Delimiter
+#### 3. Separator
 
-The delimiter prevents ambiguity between the checksum and the tag, making parsing simpler. It must be a character that does not appear in our base58 alphabet, so it can only be '0' or 'l'. With this specification, '0' is chosen.
+The separator prevents ambiguity between the checksum and the tag, simplifying parsing.
 
 #### 4. Tag
 
@@ -187,6 +188,7 @@ In the following table, we present how the classic address `rGWrZyQqhTp9Xu7G5Pka
 | 2 | 2019-12-31T23:59:59 | XbH2MxCG2X5U02rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 32 | 2019-12-31T23:59:59 | XEvcbeKFwxx7032rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 276 | 2019-12-31T23:59:59 | XK8hPmBJ14w30276rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
+| 1000 | 2019-12-31T23:59:59 | XDbHQHjBVMGF01000rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 5000 | 2019-12-31T23:59:59 | XhYq9KwMLvZS05000rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 65591 | 2019-12-31T23:59:59 | XGHSRspEm2MS065591rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 101010 | 2019-12-31T23:59:59 | XafZkqFGwHSh0101010rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
@@ -204,6 +206,7 @@ In the following table, we present extended address encodings for the same class
 | 2 | 2019-12-31T23:59:59 | TgcD8GKGM2z302rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 32 | 2019-12-31T23:59:59 | TUQdGNh7bKNU032rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 276 | 2019-12-31T23:59:59 | TboRoZyEXySU0276rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
+| 1000 | 2019-12-31T23:59:59 | THikurCZMQYh01000rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 5000 | 2019-12-31T23:59:59 | TWPvYU3AAjFg05000rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 65591 | 2019-12-31T23:59:59 | TEMfmWabruBJ065591rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 101010 | 2019-12-31T23:59:59 | TBhZZokmqGA80101010rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
@@ -230,6 +233,7 @@ Extended addresses do not need to have an expiration. Here are the same classic 
 | 2 | None | XpnDk8B02rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 32 | None | XhhYuuC032rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 276 | None | XpwjJ430276rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
+| 1000 | None | Xpfdh3i01000rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 5000 | None | Xh4bkaf05000rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 65591 | None | XhFYJZN065591rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 101010 | None | XpohpMk0101010rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
@@ -245,6 +249,7 @@ Extended addresses do not need to have an expiration. Here are the same classic 
 | 2 | None | TsPNQhL02rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 32 | None | TadYEHy032rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 276 | None | TaoojB70276rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
+| 1000 | None | Tafp78i01000rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 5000 | None | TsMz86705000rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 65591 | None | Tnph12h065591rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
 | 101010 | None | TaTGmsh0101010rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf |
@@ -416,9 +421,8 @@ const checksum = sha256(sha256(payload)).slice(0, 4);
 //        changes the first several characters of the resulting address.
 const checksumAndExpirationBase58 = codec.encode(Buffer.concat([checksum, expirationBuffer]));
 
-// 8. Decide to use '0' as our delimiter. It must be a character that
-//    does not appear in our base58 alphabet, so it can only be '0' or 'l'
-const DELIMITER = '0';
+// 8. Use '0' as a separator
+const SEPARATOR = '0';
 
 // 9. Form the "X Address" and return it:
 //    - Start with 'X' or 'T' to make the address format obvious;
@@ -426,19 +430,19 @@ const DELIMITER = '0';
 //      address/tag/network/expiration changes the first several characters of
 //      the resulting address;
 //    - Append the tag next for easy parsing.
-//      To get the tag, take everything between DELIMITER and 'r'
+//      To get the tag, take everything between SEPARATOR and 'r'
 //      (since a classic address will always start with 'r').
 //      Notice that if we had put the tag after the address, we would
-//      need to add a second delimiter to avoid ambiguity: the numbers
+//      need to add a second separator to avoid ambiguity: the numbers
 //      1-9 are all valid base58 characters in our alphabet.
 //      An added benefit of this approach is that the tag, in the middle
 //      of the string, (correctly) appears to be opaque and not user-editable.
 //    - Finish with the classic address.
 const tagString = this.tag !== undefined ? this.tag.toString() : '';
-return new XAddress(networkByte.toString() + checksumAndExpirationBase58 + DELIMITER + tagString + this.classicAddress);
+return new XAddress(networkByte.toString() + checksumAndExpirationBase58 + SEPARATOR + tagString + this.classicAddress);
 ```
 
-This requires some supporting code; please [view the full implmentation here](./src/x-address.ts).
+This requires some supporting code; please [view the full implementation here](./src/x-address.ts).
 
 To run the example (requires node.js and npm):
 

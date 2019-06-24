@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const { sha256 } = require('./sha256');
+const { hash } = require('./hash');
 const baseCodec = require('./base-x');
 const codec = baseCodec('rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz');
 // Colloquially, the new format is called an X Address because it
@@ -11,7 +11,7 @@ class XAddress {
     constructor(xAddress) {
         this.xAddress = xAddress;
     }
-    toLegacyAddress() {
+    toLegacyAddress(hashFuncName = 'sha256x2') {
         // 1. Encode first character, which must be X or T
         const first = this.xAddress.slice(0, 1);
         if (first != 'X' && first != 'T') {
@@ -19,11 +19,11 @@ class XAddress {
         }
         const networkByte = Buffer.from(first);
         // 2. Take everything between that character and the first '0', as the expiration and full checksum
-        const delimiterPosition = this.xAddress.indexOf('0');
-        if (delimiterPosition === -1) {
-            throw new Error(`Missing delimiter: ${this.xAddress}`);
+        const separatorPosition = this.xAddress.indexOf('0');
+        if (separatorPosition === -1) {
+            throw new Error(`Missing separator: ${this.xAddress}`);
         }
-        const checksumAndExpirationBase58 = this.xAddress.slice(1, delimiterPosition);
+        const checksumAndExpirationBase58 = this.xAddress.slice(1, separatorPosition);
         const checksumAndExpiration = codec.decode(checksumAndExpirationBase58);
         let expirationBuffer;
         let expiration;
@@ -42,11 +42,11 @@ class XAddress {
         }
         const checksumBuffer = checksumAndExpiration.slice(0, 4);
         // 3. Take everything between that '0' and the next 'r', as the tag
-        const classicAddressPosition = this.xAddress.indexOf('r', delimiterPosition + 1);
+        const classicAddressPosition = this.xAddress.indexOf('r', separatorPosition + 1);
         if (classicAddressPosition === -1) {
             throw new Error(`Missing classic address: ${this.xAddress}`);
         }
-        const tagString = this.xAddress.slice(delimiterPosition + 1, classicAddressPosition);
+        const tagString = this.xAddress.slice(separatorPosition + 1, classicAddressPosition);
         const tag = tagString === '' ? undefined : Number(tagString);
         if (tag !== undefined && isNaN(tag)) {
             throw new Error(`Invalid tag: ${tagString}`);
@@ -72,7 +72,7 @@ class XAddress {
         //    NB: The ordering of these values has been changed from an earlier draft of this spec.
         const payload = Buffer.concat([networkByte, expirationBuffer, tagBuffer, accountID]);
         // 7. SHA256 x 2 and take first 4 bytes as checksum
-        const computedChecksum = sha256(sha256(payload)).slice(0, 4);
+        const computedChecksum = hash(payload, hashFuncName).slice(0, 4);
         // 8. Ensure checksums match
         if (computedChecksum.equals(checksumBuffer) == false) {
             throw new Error(`Invalid checksum (hex): ${checksumBuffer.toString('hex').toUpperCase()}`);
@@ -124,7 +124,7 @@ class LegacyAddress {
             this.expiration = undefined; // does not expire
         }
     }
-    toXAddress() {
+    toXAddress(hashFuncName = 'sha256x2') {
         // 1. Decode classicAddress to accountID
         const accountID = decodeAccountID(this.classicAddress);
         // 2. Encode networkID
@@ -173,30 +173,30 @@ class LegacyAddress {
         //    NB: The ordering of these values has been changed from an earlier draft of this spec.
         const payload = Buffer.concat([networkByte, expirationBuffer, tagBuffer, accountID]);
         // 6. SHA256 x 2 and take first 4 bytes as checksum
-        const checksum = sha256(sha256(payload)).slice(0, 4);
+        const checksum = hash(payload, hashFuncName).slice(0, 4);
         // 7. Encode the expiration with the checksum, in base58.
         //    NB: Put the checksum first so that any change to the address/tag/network/expiration
         //        changes the first several characters of the resulting address.
         const checksumAndExpirationBase58 = codec.encode(Buffer.concat([checksum, expirationBuffer]));
-        // 8. Decide to use '0' as our delimiter. It must be a character that
+        // 8. Decide to use '0' as our separator. It must be a character that
         //    does not appear in our base58 alphabet, so it can only be '0' or 'l'
-        const DELIMITER = '0';
+        const SEPARATOR = '0';
         // 9. Form the "X Address" and return it:
         //    - Start with 'X' or 'T' to make the address format obvious;
         //    - Lead with the checksum so that any (valid) change to the
         //      address/tag/network/expiration changes the first several characters of
         //      the resulting address;
         //    - Append the tag next for easy parsing.
-        //      To get the tag, take everything between DELIMITER and 'r'
+        //      To get the tag, take everything between SEPARATOR and 'r'
         //      (since a classic address will always start with 'r').
         //      Notice that if we had put the tag after the address, we would
-        //      need to add a second delimiter to avoid ambiguity: the numbers
+        //      need to add a second separator to avoid ambiguity: the numbers
         //      1-9 are all valid base58 characters in our alphabet.
         //      An added benefit of this approach is that the tag, in the middle
         //      of the string, (correctly) appears to be opaque and not user-editable.
         //    - Finish with the classic address.
         const tagString = this.tag !== undefined ? this.tag.toString() : '';
-        return new XAddress(networkByte.toString() + checksumAndExpirationBase58 + DELIMITER + tagString + this.classicAddress);
+        return new XAddress(networkByte.toString() + checksumAndExpirationBase58 + SEPARATOR + tagString + this.classicAddress);
     }
     toJSON() {
         return describeAddress(this, this.toXAddress());
@@ -214,7 +214,7 @@ function decodeAccountID(base58) {
         throw new Error(`Invalid input size: ${output.length} must be < 5`);
     }
     // 3. Verify checksum
-    const computed = sha256(sha256(output.slice(0, -4))).slice(0, 4);
+    const computed = hash(output.slice(0, -4), 'sha256x2').slice(0, 4);
     const checksum = output.slice(-4);
     if (computed.equals(checksum) == false) {
         throw new Error(`Invalid checksum: ${checksum}`);

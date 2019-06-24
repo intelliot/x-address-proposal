@@ -125,15 +125,15 @@ The new format combines five items together. Note that the following is not a bu
 
 In the proposed format, the following values are concatenated together:
 
-1. An initial character indicating the network ID.
-2. A base58-encoded value containing an optional expiration timestamp and a checksum.
-3. A delimiter, chosen to be '0'.
+1. The '''initial character''' indicating the network where this address can be used: `X` for production or `T` for test.
+2. The '''required checksum and optional expiration timestamp''' encoded in base58.
+3. The '''separator''', which is always "0"<ref>'''Why include a separator in addresses?''' That way the checksum/expiration part is unambiguously separated from the tag part. The separator is ''1'' because using a non-alphanumeric character (like ''#'') would complicate copy-pasting of addresses (with no double-click selection in several applications). Therefore an alphanumeric character outside the normal character set was chosen. Also, it is not a bad thing that the character is a zero, since a leading zero on an integer has no effect on its value.</ref>.
 4. A tag.
 5. A classic address.
 
 #### 1. Network ID
 
-This character is chosen to be 'X' for production and 'T' for test.
+This character is chosen to be `X` for production and `T` for test.
 
 #### 2. Base58-encoded Value
 
@@ -159,9 +159,9 @@ codec.encode(Buffer.concat([checksum, expirationBuffer]));
 
 [1] By placing the checksum first in the data to be encoded, we induce any change to the address/tag/network/expiration to change the first several characters of the resulting address—usually the 4-6 characters after the initial X or T. This aids visual identification of the address, and is a security benefit as well. Consider smaller embedded screens, where users have to horizontally scroll (or wait) to see the entire address. If you have an identical prefix despite different destination tags, it would be easier for an attacker to trick a user into sending funds to an unintended destination. This can occur if users fail to verify both the beginning and the end of the string. With the X address format, verifying the first ~6 characters of the string should be sufficient to thwart most attacks of this type.
 
-#### 3. Delimiter
+#### 3. Separator
 
-The delimiter prevents ambiguity between the checksum and the tag, making parsing simpler. It must be a character that does not appear in our base58 alphabet, so it can only be '0' or 'l'. With this specification, '0' is chosen.
+The separator prevents ambiguity between the checksum and the tag, simplifying parsing.
 
 #### 4. Tag
 
@@ -306,6 +306,9 @@ The short answer is that they can't. The serialization field only allows exactly
 
 No, it would be a huge change and there aren't any apparent advantages. There are many risks. Allowing APIs to understand the new format sufficiently to decompose it into its two constituent fields should be sufficient.
 
+
+<references />
+
 ## Sample TypeScript/JavaScript Implementation
 
 The following is an example of a TypeScript function which will encode an Extended Address in a way that complies with this specification:
@@ -364,9 +367,8 @@ const checksum = sha256(sha256(payload)).slice(0, 4);
 //        changes the first several characters of the resulting address.
 const checksumAndExpirationBase58 = codec.encode(Buffer.concat([checksum, expirationBuffer]));
 
-// 8. Decide to use '0' as our delimiter. It must be a character that
-//    does not appear in our base58 alphabet, so it can only be '0' or 'l'
-const DELIMITER = '0';
+// 8. Use '0' as a separator
+const SEPARATOR = '0';
 
 // 9. Form the "X Address" and return it:
 //    - Start with 'X' or 'T' to make the address format obvious;
@@ -374,19 +376,19 @@ const DELIMITER = '0';
 //      address/tag/network/expiration changes the first several characters of
 //      the resulting address;
 //    - Append the tag next for easy parsing.
-//      To get the tag, take everything between DELIMITER and 'r'
+//      To get the tag, take everything between SEPARATOR and 'r'
 //      (since a classic address will always start with 'r').
 //      Notice that if we had put the tag after the address, we would
-//      need to add a second delimiter to avoid ambiguity: the numbers
+//      need to add a second separator to avoid ambiguity: the numbers
 //      1-9 are all valid base58 characters in our alphabet.
 //      An added benefit of this approach is that the tag, in the middle
 //      of the string, (correctly) appears to be opaque and not user-editable.
 //    - Finish with the classic address.
 const tagString = this.tag !== undefined ? this.tag.toString() : '';
-return new XAddress(networkByte.toString() + checksumAndExpirationBase58 + DELIMITER + tagString + this.classicAddress);
+return new XAddress(networkByte.toString() + checksumAndExpirationBase58 + SEPARATOR + tagString + this.classicAddress);
 ```
 
-This requires some supporting code; please [view the full implmentation here](./src/x-address.ts).
+This requires some supporting code; please [view the full implementation here](./src/x-address.ts).
 
 To run the example (requires node.js and npm):
 
@@ -413,8 +415,7 @@ Binaries will be output in the `./bin` directory.
 
 ## Acknowledgements
 
-This is proposal is largely based upon the XLS-5d proposal: https://github.com/xrp-community/standards-drafts/issues/6
-... with much of the verbiage copy-pasted from it! (With modifications where appropriate)
+This document builds upon the [XLS-5d Standard for Tagged Addresses proposal](https://github.com/xrp-community/standards-drafts/issues/6) by Nikolaos D. Bougalis, the [BIP 173 format](https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki), and had input from Wietse Wind and various other reviewers.
 
 ## Generation note
 

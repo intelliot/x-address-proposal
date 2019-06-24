@@ -125,11 +125,11 @@ The new format combines five items together. Note that the following is not a bu
 
 In the proposed format, the following values are concatenated together:
 
-1. The '''initial character''' indicating the network where this address can be used: `X` for production or `T` for test.
-2. The '''required checksum and optional expiration timestamp''' encoded in base58.
-3. The '''separator''', which is always "0"<ref>'''Why include a separator in addresses?''' That way the checksum/expiration part is unambiguously separated from the tag part. The separator is ''1'' because using a non-alphanumeric character (like ''#'') would complicate copy-pasting of addresses (with no double-click selection in several applications). Therefore an alphanumeric character outside the normal character set was chosen. Also, it is not a bad thing that the character is a zero, since a leading zero on an integer has no effect on its value.</ref>.
-4. A tag.
-5. A classic address.
+1. The **initial character** indicating the network where this address can be used: `X` for production or `T` for test.
+2. The **required checksum and optional expiration timestamp** encoded in base58.
+3. The **separator**, which is always "0". [[1](#why-include-a-separator-in-addresses)]
+4. The **tag**.
+5. The **classic address**.
 
 #### 1. Network ID
 
@@ -151,13 +151,13 @@ The checksum is calculated with the following steps.
 5. Concatenate these values in the following order: `Buffer.concat([networkByte, expirationBuffer, tagBuffer, accountID])`
 6. Run the data through a double SHA256 hash. The checksum is the first 4 bytes.
 
-Encode the expiration with the checksum, in base58. Put the checksum first. [1]
+Encode the expiration with the checksum, in base58. Put the checksum first. [2]
 
 ```ts
 codec.encode(Buffer.concat([checksum, expirationBuffer]));
 ```
 
-[1] By placing the checksum first in the data to be encoded, we induce any change to the address/tag/network/expiration to change the first several characters of the resulting address—usually the 4-6 characters after the initial X or T. This aids visual identification of the address, and is a security benefit as well. Consider smaller embedded screens, where users have to horizontally scroll (or wait) to see the entire address. If you have an identical prefix despite different destination tags, it would be easier for an attacker to trick a user into sending funds to an unintended destination. This can occur if users fail to verify both the beginning and the end of the string. With the X address format, verifying the first ~6 characters of the string should be sufficient to thwart most attacks of this type.
+[2] By placing the checksum first in the data to be encoded, we induce any change to the address/tag/network/expiration to change the first several characters of the resulting address—usually the 4-6 characters after the initial X or T. This aids visual identification of the address, and is a security benefit as well. Consider smaller embedded screens, where users have to horizontally scroll (or wait) to see the entire address. If you have an identical prefix despite different destination tags, it would be easier for an attacker to trick a user into sending funds to an unintended destination. This can occur if users fail to verify both the beginning and the end of the string. With the X address format, verifying the first ~6 characters of the string should be sufficient to thwart most attacks of this type.
 
 #### 3. Separator
 
@@ -306,8 +306,9 @@ The short answer is that they can't. The serialization field only allows exactly
 
 No, it would be a huge change and there aren't any apparent advantages. There are many risks. Allowing APIs to understand the new format sufficiently to decompose it into its two constituent fields should be sufficient.
 
+### Why include a separator in addresses?
 
-<references />
+That way the checksum/expiration part is unambiguously separated from the tag part. The separator is **1** because using a non-alphanumeric character (like **#**) would complicate copy-pasting of addresses (with no double-click selection in several applications). Therefore an alphanumeric character outside the normal character set was chosen. Also, it is not a bad thing that the character is a zero, since a leading zero on an integer has no effect on its value.
 
 ## Sample TypeScript/JavaScript Implementation
 

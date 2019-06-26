@@ -290,9 +290,10 @@ The server could add information to the metadata associated with a transaction t
 ```
 "ExtendedAddresses": [
     { 
-        "XpwjJ430276rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf": {
+        "{rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf 276 production 2019-12-31T23:59:59}": {
             "Address": "rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf",
-            "Tag": 276
+            "Tag": 276,
+            "Expiration": "2019-12-31T23:59:59"
         }
     }
 ]

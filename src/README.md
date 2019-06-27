@@ -396,11 +396,13 @@ During the transition period (about a year or two), the legacy address can be sh
 
 **XRP deposit address:** {rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf 276 production 2019-12-31T23:59:59}
 
-**Legacy address**
+#### Legacy address
+
 **Account:** rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf
+
 **Destination tag:** 276
 
-After a couple years, it will be no need to show the legacy address. Utilities and pages that convert an X Address to a legacy address will be widely known and can always be used in the rare case that conversion is needed.
+After a couple years, there should be no need to show the legacy address. Utilities and pages that convert an X Address to a legacy address will be widely known and can always be used in the rare case that conversion is needed.
 
 For withdrawals, exchanges that currently provide a field to supply a destination tag can hide the field. If a classic address is entered in the destination address field, the page can then show the tag field.
 

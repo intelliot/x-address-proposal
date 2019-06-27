@@ -61,7 +61,7 @@ The following values are concatenated together:
 
 #### 1. Network ID
 
-This character is chosen to be `X` for production and `T` for test. These choices are arbitrary, but uppercase letters help to distinguish these addresses from existing addresses. They also look like a proper noun. `X` also forms a parallel with the name of the system (`X`RP Ledger).
+This character is chosen to be `X` for production and `T` for test. These choices are arbitrary, but uppercase letters help to distinguish these addresses from existing addresses. They also look like a proper noun. `X` also forms a parallel with the name of the system (`XRP Ledger`).
 
 #### 2. Base58-encoded Value
 
@@ -79,13 +79,15 @@ The checksum is calculated with the following steps.
 5. Concatenate these values in the following order: `Buffer.concat([networkByte, expirationBuffer, tagBuffer, accountID])`
 6. Run the data through a double SHA256 hash. The checksum is the first 4 bytes.
 
-Encode the expiration with the checksum, in base58. Put the checksum first. [2]
+Encode the expiration with the checksum, in base58. Put the checksum first.
 
 ```ts
 codec.encode(Buffer.concat([checksum, expirationBuffer]));
 ```
 
-[2] By placing the checksum first in the data to be encoded, we induce any change to the address/tag/network/expiration to change the first several characters of the resulting address—usually the 4-6 characters after the initial X or T. This aids visual identification of the address, and is a security benefit as well. Consider smaller embedded screens, where users have to horizontally scroll (or wait) to see the entire address. If you have an identical prefix despite different destination tags, it would be easier for an attacker to trick a user into sending funds to an unintended destination. This can occur if users fail to verify both the beginning and the end of the string. With the X address format, verifying the first ~6 characters of the string should be sufficient to thwart most attacks of this type.
+By placing the checksum first in the data to be encoded, we induce any change to the address/tag/network/expiration to change the first several characters of the resulting address—usually the 4-6 characters after the initial X or T. This aids visual identification of the address, and is a security benefit as well. Consider smaller embedded screens, where users have to horizontally scroll (or wait) to see the entire address. If you have an identical prefix despite different destination tags, it would be easier for an attacker to trick a user into sending funds to an unintended destination. This can occur if users fail to verify both the beginning and the end of the string. With the X address format, verifying the first ~6 characters of the string should be sufficient to thwart most attacks of this type.
+
+By instinct, many people use the shortcut of only verifying the first few and last few characters of an address. With this format, with the checksum at the beginning, this is sufficient for most use cases.
 
 #### 3. Separator
 

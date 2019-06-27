@@ -435,7 +435,7 @@ The server could add information to the metadata associated with a transaction t
 
 ### What happens if someone specifies one of these addresses in the binary format?
 
-The short answer is that they can't. The serialization field only allows exactly 20 bytes, so only the account itself can fit in. This format is only for base58 encoded addresses and is purely a convenience for users.
+The short answer is that they can't. The serialization field only allows exactly 20 bytes, so only the account itself can fit in. This format also differs significantly from a base58 encoding, so it is trivial to detect it as invalid.
 
 ### Should we integrate this natively into the protocol/ledger?
 
